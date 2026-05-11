@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../viewmodels/register_viewmodel.dart';
 
 class RegisterView extends StatefulWidget {
@@ -12,12 +11,13 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
+  final RegisterViewModel _regVM = RegisterViewModel();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   Widget build(BuildContext context) {
-    final regVM = Provider.of<RegisterViewModel>(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       appBar: AppBar(
@@ -30,7 +30,6 @@ class _RegisterViewState extends State<RegisterView> {
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Column(
             children: [
-              // Logo
               ClipOval(
                 child: Image.asset(
                   'lib/assets/kerajinan.png',
@@ -116,28 +115,24 @@ class _RegisterViewState extends State<RegisterView> {
                           : Icons.visibility_off_outlined,
                       color: Colors.grey,
                     ),
-                    onPressed: () => setState(
-                        () => _obscurePassword = !_obscurePassword),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
               ),
 
-              // Error message
-              if (regVM.errorMessage != null) ...
-                [
-                  const SizedBox(height: 10),
-                  Text(
-                    regVM.errorMessage!,
-                    style: const TextStyle(color: Colors.red, fontSize: 13),
-                  ),
-                ],
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 13),
+                ),
+              ],
 
               const SizedBox(height: 24),
 
-              // Tombol daftar
-              regVM.isLoading
-                  ? const CircularProgressIndicator(
-                      color: Color(0xFF7B3F00))
+              _isLoading
+                  ? const CircularProgressIndicator(color: Color(0xFF7B3F00))
                   : SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -149,16 +144,22 @@ class _RegisterViewState extends State<RegisterView> {
                           ),
                         ),
                         onPressed: () async {
-                          final email = _emailController.text.trim();
+                          final username = _emailController.text.trim();
                           final pass = _passController.text.trim();
-                          if (email.isEmpty || pass.isEmpty) return;
-                          bool success =
-                              await regVM.register(email, pass);
-                          if (success && context.mounted) {
+                          setState(() {
+                            _isLoading = true;
+                            _errorMessage = null;
+                          });
+                          final error = await _regVM.register(username, pass);
+                          setState(() {
+                            _isLoading = false;
+                            _errorMessage = error;
+                          });
+                          if (error == null && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text(
-                                    "Registrasi Berhasil! Silakan Login."),
+                                content:
+                                    Text("Registrasi Berhasil! Silakan Login."),
                                 backgroundColor: Color(0xFF7B3F00),
                               ),
                             );
@@ -180,8 +181,7 @@ class _RegisterViewState extends State<RegisterView> {
                 child: const Text(
                   "Sudah punya akun? Login di sini",
                   style: TextStyle(
-                      color: Color(0xFFB8860B),
-                      fontWeight: FontWeight.w500),
+                      color: Color(0xFFB8860B), fontWeight: FontWeight.w500),
                 ),
               ),
             ],

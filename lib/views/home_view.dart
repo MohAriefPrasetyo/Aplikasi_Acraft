@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../viewmodels/home_viewmodel.dart';
 import '../widgets/craft_card.dart';
 
@@ -13,11 +12,21 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final HomeViewModel _homeVM = HomeViewModel();
+  bool _isLoading = false;
+  bool _isGridLayout = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    await _homeVM.loadCrafts();
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -28,13 +37,10 @@ class _HomeViewState extends State<HomeView>
 
   @override
   Widget build(BuildContext context) {
-    final homeVM = Provider.of<HomeViewModel>(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: Column(
         children: [
-          // Banner image
           Image.asset(
             'lib/assets/craft.png',
             width: double.infinity,
@@ -49,7 +55,6 @@ class _HomeViewState extends State<HomeView>
             ),
           ),
 
-          // Tab bar + icons
           Container(
             color: Colors.white,
             child: Row(
@@ -70,10 +75,15 @@ class _HomeViewState extends State<HomeView>
                 ),
                 IconButton(
                   icon: Icon(
-                    homeVM.isGridLayout ? Icons.list : Icons.grid_view,
+                    _isGridLayout ? Icons.list : Icons.grid_view,
                     color: const Color(0xFFB8860B),
                   ),
-                  onPressed: () => homeVM.toggleLayout(),
+                  onPressed: () {
+                    setState(() {
+                      _isGridLayout = !_isGridLayout;
+                      _homeVM.isGridLayout = _isGridLayout;
+                    });
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.person_outline,
@@ -85,13 +95,12 @@ class _HomeViewState extends State<HomeView>
             ),
           ),
 
-          // Content
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildContent(homeVM, "Koleksi"),
-                _buildContent(homeVM, "Populer"),
+                _buildContent("Koleksi"),
+                _buildContent("Populer"),
               ],
             ),
           ),
@@ -100,18 +109,18 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  Widget _buildContent(HomeViewModel homeVM, String tab) {
-    if (homeVM.isLoading) {
+  Widget _buildContent(String tab) {
+    if (_isLoading) {
       return const Center(
           child: CircularProgressIndicator(color: Color(0xFF7B3F00)));
     }
-    final items = homeVM.filteredByTab(tab);
+    final items = _homeVM.filteredByTab(tab);
     if (items.isEmpty) {
       return const Center(
           child: Text("Belum ada data",
               style: TextStyle(color: Colors.grey)));
     }
-    if (homeVM.isGridLayout) {
+    if (_isGridLayout) {
       return GridView.builder(
         padding: const EdgeInsets.all(12),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -134,4 +143,3 @@ class _HomeViewState extends State<HomeView>
     );
   }
 }
-

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
@@ -11,25 +10,26 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  
+  final ProfileViewModel _profileVM = ProfileViewModel();
+  final AuthViewModel _authVM = AuthViewModel();
+  String _username = '';
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProfileViewModel>().loadProfile();
+    _profileVM.loadProfile().then((_) {
+      setState(() {
+        _username = _profileVM.username;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileVM = Provider.of<ProfileViewModel>(context);
-    final authVM = Provider.of<AuthViewModel>(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: Column(
         children: [
-          // Header coklat dengan tombol kembali dan avatar
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(
@@ -41,19 +41,14 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             child: Column(
               children: [
-                // --- TOMBOL KEMBALI ---
                 Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
-                    onPressed: () {
-                      // Mengembalikan ke halaman sebelumnya
-                      Navigator.pop(context);
-                    },
+                    icon: const Icon(Icons.arrow_back_ios_new,
+                        color: Colors.white, size: 22),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                
-                // Avatar
                 Container(
                   width: 90,
                   height: 90,
@@ -67,13 +62,10 @@ class _ProfileViewState extends State<ProfileView> {
                       size: 50, color: Color(0xFF7B3F00)),
                 ),
                 const SizedBox(height: 14),
-                
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
-                    profileVM.username.isEmpty
-                        ? 'Pengguna ACraft'
-                        : profileVM.username,
+                    _username.isEmpty ? 'Pengguna ACraft' : _username,
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -84,12 +76,10 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: 4),
                 const Text(
                   'Member ACraft',
-                  style: TextStyle(
-                      fontSize: 13, color: Color(0xFFD2B48C)),
+                  style: TextStyle(fontSize: 13, color: Color(0xFFD2B48C)),
                 ),
               ],
             ),
@@ -97,7 +87,6 @@ class _ProfileViewState extends State<ProfileView> {
 
           const SizedBox(height: 24),
 
-          // Menu items
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -127,7 +116,6 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 const SizedBox(height: 32),
 
-                // Tombol Logout
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -147,8 +135,8 @@ class _ProfileViewState extends State<ProfileView> {
                           fontWeight: FontWeight.w600),
                     ),
                     onPressed: () async {
-                      await profileVM.logout();
-                      await authVM.logout();
+                      await _profileVM.logout();
+                      await _authVM.logout();
                       if (context.mounted) {
                         Navigator.pushNamedAndRemoveUntil(
                           context,
@@ -174,8 +162,7 @@ class _ProfileViewState extends State<ProfileView> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -206,8 +193,7 @@ class _ProfileViewState extends State<ProfileView> {
                     fontSize: 14, fontWeight: FontWeight.w500),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios,
-                size: 14, color: Colors.grey),
+            const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
           ],
         ),
       ),

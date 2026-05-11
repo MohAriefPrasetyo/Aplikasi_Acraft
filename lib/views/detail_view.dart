@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/craft_model.dart';
+import '../models/review_model.dart';
 import '../viewmodels/review_viewmodel.dart';
 
 class DetailView extends StatefulWidget {
@@ -13,12 +13,34 @@ class DetailView extends StatefulWidget {
 }
 
 class _DetailViewState extends State<DetailView> {
+  final ReviewViewModel _reviewVM = ReviewViewModel();
+  List<Review> _reviews = [];
+  bool _isLoading = false;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ReviewViewModel>(context, listen: false).fetchReviews();
+    _fetchReviews();
+  }
+
+  Future<void> _fetchReviews() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
     });
+    try {
+      await _reviewVM.fetchReviews();
+      setState(() {
+        _reviews = _reviewVM.reviews;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -28,7 +50,6 @@ class _DetailViewState extends State<DetailView> {
         title: Text(widget.craft.name),
         foregroundColor: const Color(0xFF8B4513),
       ),
-      // 1. KONTEN UTAMA (SCROLLABLE)
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +102,8 @@ class _DetailViewState extends State<DetailView> {
                   const Divider(),
                   const Text(
                     "Deskripsi",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -93,60 +115,11 @@ class _DetailViewState extends State<DetailView> {
                   const SizedBox(height: 10),
                   const Text(
                     'Ulasan Produk',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  Consumer<ReviewViewModel>(
-                    builder: (context, viewModel, child) {
-                      if (viewModel.isLoading) {
-                        return const Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      if (viewModel.errorMessage != null) {
-                        return Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Center(
-                            child: Text(
-                              'Gagal memuat ulasan: ${viewModel.errorMessage}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        );
-                      }
-                      if (viewModel.reviews.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Center(child: Text('Belum ada ulasan untuk produk ini.')),
-                        );
-                      }
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: viewModel.reviews.length,
-                        itemBuilder: (context, index) {
-                          final review = viewModel.reviews[index];
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: CircleAvatar(
-                              backgroundColor: const Color(0xFF8B4513),
-                              child: Text(
-                                review.authorName[0].toUpperCase(),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                            title: Text(
-                              review.authorName,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(review.message),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                  _buildReviews(),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -154,10 +127,9 @@ class _DetailViewState extends State<DetailView> {
           ],
         ),
       ),
-      
-      // 2. TOMBOL BAYAR MELAYANG (BOTTOM NAVIGATION BAR)
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
@@ -182,7 +154,10 @@ class _DetailViewState extends State<DetailView> {
             icon: const Icon(Icons.shopping_cart, color: Colors.white),
             label: const Text(
               "Beli Sekarang",
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF8B4513),
@@ -193,6 +168,56 @@ class _DetailViewState extends State<DetailView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildReviews() {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
+          child: Text(
+            'Gagal memuat ulasan: $_errorMessage',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      );
+    }
+    if (_reviews.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Center(child: Text('Belum ada ulasan untuk produk ini.')),
+      );
+    }
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _reviews.length,
+      itemBuilder: (context, index) {
+        final review = _reviews[index];
+        return ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: CircleAvatar(
+            backgroundColor: const Color(0xFF8B4513),
+            child: Text(
+              review.authorName[0].toUpperCase(),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          title: Text(
+            review.authorName,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(review.message),
+        );
+      },
     );
   }
 }

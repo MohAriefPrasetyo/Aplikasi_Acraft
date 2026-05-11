@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../viewmodels/welcome_viewmodel.dart';
 
 class WelcomeView extends StatefulWidget {
@@ -10,26 +9,27 @@ class WelcomeView extends StatefulWidget {
 }
 
 class _WelcomeViewState extends State<WelcomeView> {
+  final WelcomeViewModel _welcomeVM = WelcomeViewModel();
+  String _username = '';
+
   @override
   void initState() {
     super.initState();
-    // Jalankan logika welcome saat halaman muncul
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<WelcomeViewModel>().initWelcome().then((_) {
-        if (mounted) Navigator.pushReplacementNamed(context, '/home');
+    _welcomeVM.initWelcome().then((_) {
+      setState(() {
+        _username = _welcomeVM.username;
       });
+      if (mounted) Navigator.pushReplacementNamed(context, '/home');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final welcomeVM = Provider.of<WelcomeViewModel>(context);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24), // Memberikan jarak kiri-kanan
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -41,17 +41,14 @@ class _WelcomeViewState extends State<WelcomeView> {
                   color: Color(0xFF8B4513),
                 ),
               ),
-              const SizedBox(height: 12), // Sedikit dilonggarkan
-              
-              // --- PERBAIKAN TEKS WELCOME ---
+              const SizedBox(height: 12),
               Text(
-                // Menggunakan \n agar Username ada di baris bawahnya
-                "Selamat Datang,\n${welcomeVM.username}", 
-                textAlign: TextAlign.center, // Memaksa rata tengah
+                "Selamat Datang,\n$_username",
+                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 22, // Ukuran disesuaikan agar email yang panjang tidak terlalu sesak
+                  fontSize: 22,
                   color: Color(0xFFD2B48C),
-                  height: 1.4, // Memberi jarak renggang antar baris atas dan bawah
+                  height: 1.4,
                 ),
               ),
             ],
