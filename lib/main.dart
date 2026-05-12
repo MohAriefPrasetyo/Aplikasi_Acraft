@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:device_preview/device_preview.dart';
 
 import 'views/login_view.dart';
 import 'views/register_view.dart';
@@ -15,7 +16,12 @@ void main() async {
     anonKey: 'sb_publishable_yk4DXbP8vvhkGMTBurxbwg_7KjoezZh',
   );
 
-  runApp(const MyApp());
+  runApp(
+    DevicePreview(
+      enabled: true,
+      builder: (context) => const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -25,6 +31,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      useInheritedMediaQuery: true,
+      locale: DevicePreview.locale(context),
+      builder: DevicePreview.appBuilder,
       theme: ThemeData(primarySwatch: Colors.brown),
       home: const LoginView(),
       routes: {
