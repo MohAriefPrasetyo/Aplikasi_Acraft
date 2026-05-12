@@ -22,7 +22,6 @@ class Craft {
       price: json['price']?.toString() ?? '0',
       desc: json['description'] ?? '',
       category: json['category'] ?? 'Koleksi',
-      // Langsung ambil URL dari database. Jika kosong, biarkan string kosong ('')
       imageUrl: json['image_url'] ?? '', 
     );
   }

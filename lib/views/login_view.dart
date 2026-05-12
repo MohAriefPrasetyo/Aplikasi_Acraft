@@ -22,7 +22,7 @@ class _LoginViewState extends State<LoginView> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 3000), () {
       if (mounted) {
         setState(() {
           _isCheckingAuth = false;

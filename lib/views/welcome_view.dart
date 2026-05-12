@@ -19,7 +19,9 @@ class _WelcomeViewState extends State<WelcomeView> {
       setState(() {
         _username = _welcomeVM.username;
       });
-      if (mounted) Navigator.pushReplacementNamed(context, '/home');
+      _welcomeVM.delayBeforeHome().then((_) {
+        if (mounted) Navigator.pushReplacementNamed(context, '/home');
+      });
     });
   }
 

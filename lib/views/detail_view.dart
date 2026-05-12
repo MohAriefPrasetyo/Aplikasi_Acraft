@@ -91,7 +91,7 @@ class _DetailViewState extends State<DetailView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Rp ${widget.craft.price}',
+                    '${widget.craft.price}',
                     style: const TextStyle(
                       fontSize: 20,
                       color: Colors.brown,

@@ -12,6 +12,9 @@ class WelcomeViewModel {
       final prefs = await SharedPreferences.getInstance();
       username = prefs.getString('username') ?? 'Pengguna';
     }
+  }
+
+  Future<void> delayBeforeHome() async {
     await Future.delayed(const Duration(seconds: 2));
   }
 }

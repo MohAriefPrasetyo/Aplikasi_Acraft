@@ -37,24 +37,16 @@ class AuthService {
     return true;
   }
 
-  // --------------------------------------------------------
-  // 2. KODE BARU: LOGIN GOOGLE (CARA MUDAH SUPABASE)
-  // --------------------------------------------------------
   Future<void> signInWithGoogle() async {
-    // Ini adalah keajaiban Supabase. 
-    // Otomatis membuka halaman login Google di Edge tanpa package tambahan!
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: 'http://localhost:*/',
       queryParams: {
-        'prompt': 'select_account', // Memaksa Google untuk selalu menampilkan pop-up pilihan akun
+        'prompt': 'select_account', 
       },
     );
   }
 
-  // --------------------------------------------------------
-  // 3. LOGOUT & GET USERNAME
-  // --------------------------------------------------------
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
@@ -67,7 +59,7 @@ class AuthService {
     if (user != null && user.email != null) {
       return user.email!;
     }
-    // Jika login manual, ambil dari penyimpanan lokal
+
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('username') ?? '';
   }

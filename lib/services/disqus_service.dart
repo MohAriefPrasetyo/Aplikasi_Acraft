@@ -3,14 +3,11 @@ import 'package:http/http.dart' as http;
 import '../models/review_model.dart';
 
 class DisqusService {
-  // API Key kamu
   final String _publicKey = 'f9NLfCN8SZKDuhMlbvJOCREyJo2ksWSBB0pQgwtWVauu8xCrMfJeZfJOVWsylozn'; 
   
-  // Pastikan nama forum ini benar
   final String _forumShortname = 'blog-android'; 
 
   Future<List<Review>> fetchReviews() async {
-    // PERBAIKAN: Mengubah 'threads' menjadi 'forums' agar tidak error 400
     final url = Uri.parse(
         'https://disqus.com/api/3.0/forums/listPosts.json?api_key=$_publicKey&forum=$_forumShortname');
 
